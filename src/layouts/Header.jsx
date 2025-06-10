@@ -3,9 +3,9 @@ import { HamburgerIcon } from "@chakra-ui/icons";
 import { Link as RouterLink } from "react-router-dom";
 import PATH from "../utils/path";
 
-import DarkModeBtn from "../components/button/darkModeBtn";
 import Auth from "../components/auth/Auth";
 import NavigationHeader from "../components/navigation/NavigationHeader";
+import DarkModeBtn from "../components/button/DarkModeBtn";
 
 const Header = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
