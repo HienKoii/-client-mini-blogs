@@ -5,7 +5,7 @@ import PATH from "../utils/path";
 
 import Auth from "../components/auth/Auth";
 import NavigationHeader from "../components/navigation/NavigationHeader";
-import DarkModeBtn from "../components/button/DarkModeBtn";
+import DarkModeBtn from "../components/darkMode/DarkModeBtn";
 
 const Header = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
