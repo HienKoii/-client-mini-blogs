@@ -1,7 +1,6 @@
-import { Button, HStack, VStack } from "@chakra-ui/react";
+import { Button, HStack } from "@chakra-ui/react";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 import PATH from "../../utils/path";
-import DarkModeBtn from "../button/darkModeBtn";
 import DrawerNavigation from "../drawer/DrawerNavigation";
 
 const navigationLinks = [
