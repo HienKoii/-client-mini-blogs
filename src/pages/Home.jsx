@@ -6,13 +6,13 @@ import UserContext from "../contexts/UserContext";
 import PostsContext from "../contexts/PostsContext";
 const Home = () => {
   const { user } = useContext(UserContext);
-  const { posts } = useContext(PostsContext);
+  const { posts, isLoading } = useContext(PostsContext);
 
   return (
     <>
       <VStack spacing={6} align="stretch">
         {user && <CreatePost />}
-        <PostList posts={posts} />
+        <PostList posts={posts} loading={isLoading} />
       </VStack>
     </>
   );
