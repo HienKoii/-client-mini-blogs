@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Center, Spinner } from "@chakra-ui/react";
+
 import PostsContext from "../contexts/PostsContext";
 import PostsServices from "../services/PostsServices";
 
@@ -11,6 +11,7 @@ export const PostsProvider = ({ children }) => {
     try {
       setIsLoading(true);
       const response = await PostsServices.getPublic();
+      console.log('response', response)
       setPosts(response?.data);
     } catch (error) {
       console.error("Lỗi khi lấy bài viết:", error);
@@ -23,6 +24,32 @@ export const PostsProvider = ({ children }) => {
     fetchPostsPublic();
   };
 
+  const handleCreatePost = async (data) => {
+    try {
+      const res = await PostsServices.create(data);
+      if (res.status === 201 || res.status === 200) {
+        fetchPostsPublic();
+      }
+      return res;
+    } catch (error) {
+      console.log("error handleCreatePost: ", error);
+      throw error;
+    }
+  };
+
+  const handleUpdatePost = async (data) => {
+    try {
+      console.log("data", data);
+
+      const res = await PostsServices.update(data);
+      console.log("res handleUpdatePost: ", res);
+      return res;
+    } catch (error) {
+      console.log("error handleUpdatePost: ", error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     fetchPostsPublic();
   }, []);
@@ -31,15 +58,9 @@ export const PostsProvider = ({ children }) => {
     posts,
     isLoading,
     refreshPosts,
+    handleCreatePost,
+    handleUpdatePost,
   };
-
-  if (isLoading) {
-    return (
-      <Center h="200px">
-        <Spinner size="xl" color="blue.500" />
-      </Center>
-    );
-  }
 
   return <PostsContext.Provider value={values}>{children}</PostsContext.Provider>;
 };

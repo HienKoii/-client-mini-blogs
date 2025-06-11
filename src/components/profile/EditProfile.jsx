@@ -24,6 +24,7 @@ import ProfileServices from "../../services/ProfileServices";
 import UserContext from "../../contexts/UserContext";
 
 export default function EditProfile({ isOpen, onClose, profileUser, onUpdate }) {
+  console.log("profileUser", profileUser);
   const { user, setUser } = useContext(UserContext);
   const [formData, setFormData] = useState({
     name: profileUser?.name || "",
@@ -76,8 +77,8 @@ export default function EditProfile({ isOpen, onClose, profileUser, onUpdate }) 
     try {
       const playLoad = {
         ...formData,
-        avatar,
-        coverImage,
+        avatar: avatar ? avatar : profileUser.avatar,
+        coverImage: coverImage ? coverImage : profileUser.cover_image,
       };
 
       const response = await ProfileServices.updateProfile(playLoad);

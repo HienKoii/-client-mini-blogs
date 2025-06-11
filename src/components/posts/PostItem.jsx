@@ -1,7 +1,24 @@
-import { Box, HStack, Text, IconButton, Image, Divider, useColorModeValue, SimpleGrid, Flex } from "@chakra-ui/react";
+import {
+  Box,
+  HStack,
+  Text,
+  IconButton,
+  Image,
+  Divider,
+  useColorModeValue,
+  SimpleGrid,
+  Flex,
+  useDisclosure,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
+  Button,
+} from "@chakra-ui/react";
 import { FaLock, FaGlobe } from "react-icons/fa";
-import { BsThreeDots } from "react-icons/bs";
-import { useState } from "react";
+import { useContext, useState, useRef } from "react";
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
@@ -10,16 +27,26 @@ import "yet-another-react-lightbox/plugins/thumbnails.css";
 import AvatarImg from "../Images/AvatarImg";
 import PATH from "../../utils/path";
 import PostActions from "./PostActions";
-import { formatDate } from "../../utils/util";
+import { formatDate, formatContent } from "../../utils/util";
+import UserName from "../user/UserName";
+import PostMenu from "./PostMenu";
+import UserContext from "../../contexts/UserContext";
+import EditPostModal from "./EditPostModal";
 
 const PostItem = ({ post }) => {
-  const avatarUrl = JSON.parse(post?.user_avatar || "[]")[0]?.url;
-  const mediaData = JSON.parse(post?.media || "[]");
+  const avatarUrl = post?.user_avatar[0]?.url;
+  const mediaData = post?.media;
+  const { user } = useContext(UserContext);
+
+  const cancelRef = useRef();
 
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  const { isOpen: isEditModalOpen, onOpen: onEditModalOpen, onClose: onEditModalClose } = useDisclosure();
+  const { isOpen: isDeleteAlertOpen, onOpen: onDeleteAlertOpen, onClose: onDeleteAlertClose } = useDisclosure();
 
   const bgColor = useColorModeValue("white", "gray.800");
   const textColor = useColorModeValue("gray.800", "white");
@@ -39,6 +66,16 @@ const PostItem = ({ post }) => {
     setLightboxOpen(true);
   };
 
+  const handleEdit = () => {
+    onEditModalOpen();
+  };
+
+  const handleDelete = () => {
+    onDeleteAlertOpen();
+  };
+
+  const isOwner = user?.id === post?.user_id;
+
   const renderMedia = () => {
     if (!mediaData || mediaData.length === 0) return null;
 
@@ -47,22 +84,11 @@ const PostItem = ({ post }) => {
         <Box cursor="pointer" onClick={() => handleMediaClick(0)}>
           {mediaData[0].type === "image" ? (
             <Flex justifyContent={"center"}>
-              <Image
-                src={mediaData[0].url}
-                w={mediaData[0].width} //
-                h={mediaData[0].height}
-                maxH="500px"
-                objectFit="cover"
-                borderRadius="md"
-              />{" "}
+              <Image src={mediaData[0].url} w={mediaData[0].width} h={mediaData[0].height} maxH="500px" objectFit="cover" borderRadius="md" />
             </Flex>
           ) : (
             <Flex justifyContent={"center"}>
-              <video
-                src={mediaData[0].url} //
-                controls
-                style={{ width: `${mediaData[0].width}px`, height: `${mediaData[0].height}px`, objectFit: "cover", borderRadius: "0.375rem" }}
-              />{" "}
+              <video src={mediaData[0].url} controls style={{ width: `${mediaData[0].width}px`, height: `${mediaData[0].height}px`, objectFit: "cover", borderRadius: "0.375rem" }} />
             </Flex>
           )}
         </Box>
@@ -164,77 +190,49 @@ const PostItem = ({ post }) => {
     })) || [];
 
   return (
-    <Box
-      bg={bgColor}
-      borderRadius="lg"
-      boxShadow="sm" //
-      overflow="hidden"
-      borderWidth="1px"
-      borderColor={borderColor}
-    >
-      {/* Post Header */}
-      <HStack p={4} spacing={4}>
-        <AvatarImg to={PATH.profileId(post?.user_id)} src={avatarUrl} />
-        <Box flex="1">
-          <HStack>
-            <Text fontWeight="bold" color={textColor}>
-              {post?.user_name}
-            </Text>
-          </HStack>
-          <HStack spacing={0}>
-            <IconButton
-              icon={
-                post.status === 0 ? ( //
-                  <FaGlobe />
-                ) : (
-                  <FaLock />
-                )
-              }
-              justifyContent={"start"}
-              size="xs"
-              variant="ghost"
-              color={secondaryTextColor}
-              aria-label={post.status === 0 ? "Public post" : "Private post"}
-            />
-            <Text fontSize="sm" color={secondaryTextColor}>
-              {formatDate(post.created_at)}
-            </Text>
-          </HStack>
+    <>
+      <Box bg={bgColor} borderRadius="lg" boxShadow="sm" overflow="hidden" borderWidth="1px" borderColor={borderColor}>
+        {/* Post Header */}
+        <HStack p={4} spacing={4}>
+          <AvatarImg to={PATH.profileId(post?.user_id)} src={avatarUrl} />
+          <Box flex="1">
+            <UserName name={post?.user_name} isVerified={post?.user_tick} textColor={textColor} iconProps={{ boxSize: 3 }} to={post?.user_id} />
+            <HStack spacing={0}>
+              <IconButton
+                icon={post.status === 0 ? <FaGlobe /> : <FaLock />}
+                justifyContent={"start"}
+                size="xs"
+                variant="ghost"
+                color={secondaryTextColor}
+                aria-label={post.status === 0 ? "Public post" : "Private post"}
+              />
+              <Text fontSize="sm" color={secondaryTextColor}>
+                {formatDate(post.created_at)}
+              </Text>
+            </HStack>
+          </Box>
+          <PostMenu onEdit={handleEdit} onDelete={handleDelete} isOwner={isOwner} />
+        </HStack>
+
+        {/* Post Content */}
+        <Box px={4} pb={4}>
+          <Text mb={4} color={textColor} whiteSpace="pre-line">
+            {formatContent(post.content)}
+          </Text>
+          {renderMedia()}
         </Box>
-        <IconButton
-          icon={<BsThreeDots />} //
-          variant="ghost"
-          color={secondaryTextColor}
-          _hover={{ color: textColor }}
-        />
-      </HStack>
 
-      {/* Post Content */}
-      <Box px={4} pb={4}>
-        <Text mb={4} color={textColor}>
-          {post.content}
-        </Text>
-        {renderMedia()}
+        {/* Post Actions */}
+        <Divider borderColor={borderColor} />
+        <PostActions post={post} isLiked={isLiked} isSaved={isSaved} handleSave={handleSave} secondaryTextColor={secondaryTextColor} textColor={textColor} handleLike={handleLike} />
       </Box>
-
-      {/* Post Actions */}
-      <Divider borderColor={borderColor} />
-      <PostActions
-        post={post} //
-        isLiked={isLiked}
-        isSaved={isSaved}
-        handleSave={handleSave}
-        secondaryTextColor={secondaryTextColor}
-        textColor={textColor}
-        handleLike={handleLike}
-      />
 
       {/* Lightbox */}
       <Lightbox
         open={lightboxOpen}
         close={() => setLightboxOpen(false)}
-        index={lightboxIndex}
         slides={slides}
+        index={lightboxIndex}
         plugins={[Zoom, Thumbnails]}
         carousel={{ finite: true }}
         controller={{ closeOnBackdropClick: true }}
@@ -242,7 +240,40 @@ const PostItem = ({ post }) => {
         zoom={{ maxZoomPixelRatio: 3 }}
         thumbnails={{ width: 120, height: 80, padding: 4, gap: 8 }}
       />
-    </Box>
+
+      {/* Edit Modal */}
+      <EditPostModal
+        isOpen={isEditModalOpen} //
+        onClose={onEditModalClose}
+        post={post}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        isOpen={isDeleteAlertOpen} //
+        leastDestructiveRef={cancelRef}
+        onClose={onDeleteAlertClose}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent bg={bgColor}>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold" color={textColor}>
+              Xóa bài viết
+            </AlertDialogHeader>
+
+            <AlertDialogBody color={textColor}>Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác.</AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onDeleteAlertClose}>
+                Hủy
+              </Button>
+              <Button colorScheme="red" ml={3}>
+                Xóa
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+    </>
   );
 };
 

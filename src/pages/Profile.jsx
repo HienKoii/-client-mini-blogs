@@ -40,9 +40,11 @@ import PostList from "../components/posts/PostList";
 import EditProfile from "../components/profile/EditProfile";
 import ProfileServices from "../services/ProfileServices";
 
-import coverImageDefault from "../assets/cover.jpg";
 import CreatePost from "../components/posts/CreatePost";
 import ImagesTabProfile from "../components/profile/ImagesTabProfile";
+import CoverImg from "../components/Images/CoverImg";
+import UserName from "../components/user/UserName";
+import PATH from "../utils/path";
 
 export default function Profile() {
   const { user, setUser } = useContext(UserContext);
@@ -63,7 +65,6 @@ export default function Profile() {
   const isMe = user?.id === profileUser?.id;
 
   const isAvatar = profileUser?.avatar && profileUser?.avatar.length > 0 ? profileUser?.avatar[0]?.url : null;
-  const isCover = profileUser?.cover_image && profileUser?.cover_image.length > 0 ? profileUser?.cover_image[0]?.url : coverImageDefault;
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -100,6 +101,8 @@ export default function Profile() {
   };
 
   const handleDeleteProfileImage = async (image, type) => {
+    const stringType = type === "avatar" ? "ảnh đại diện" : type === "cover" ? "ảnh bìa" : "????";
+
     try {
       const convertFieldCover = type === "cover" ? "cover_image" : type;
       const filterFieldList = type === "avatar" ? "listAvatar" : type === "cover" ? "listCoverImage" : "default";
@@ -122,7 +125,7 @@ export default function Profile() {
         }));
         toast({
           title: "Thành công",
-          description: "Đã đặt làm ảnh đại diện",
+          description: `Đã đặt làm ${stringType}`,
           status: "success",
           duration: 3000,
           isClosable: true,
@@ -133,7 +136,7 @@ export default function Profile() {
       console.log("error handleSetAsAvatar: ", error);
       toast({
         title: "Lỗi",
-        description: "Không thể xóa ảnh đại diện",
+        description: `Không thể xóa ${stringType}`,
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -218,9 +221,22 @@ export default function Profile() {
     <>
       <VStack spacing={8} align="stretch">
         {/* Cover Image */}
-        <Box h={{ base: "200px", md: "300px" }} w="full" bg="gray.100" borderRadius="lg" position="relative" overflow="hidden">
+        <Box
+          h={{ base: "200px", md: "300px", lg: "400px" }}
+          w="full" //
+          bg="gray.100"
+          borderRadius="lg"
+          position="relative"
+          overflow="hidden"
+        >
           {profileUser?.cover_image ? (
-            <Image src={isCover} alt="Cover" w="full" h="full" objectFit="cover" />
+            <CoverImg
+              src={profileUser?.cover_image[0]?.url} //
+              alt="Cover"
+              w="full"
+              h="full"
+              objectFit="cover"
+            />
           ) : (
             <Box w="full" h="full" bg="gray.200" display="flex" alignItems="center" justifyContent="center">
               <Icon as={FaImage} w={{ base: 8, md: 12 }} h={{ base: 8, md: 12 }} color="gray.400" />
@@ -247,11 +263,12 @@ export default function Profile() {
               borderColor={bgColor}
             />
             <VStack align="start" flex={1} spacing={4} w={"100%"}>
-              <VStack align="start" spacing={1} w="full">
-                <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="bold" color={textColor}>
-                  {profileUser?.name}
-                </Text>
-              </VStack>
+              <UserName
+                name={profileUser?.name}
+                textColor={textColor}
+                isVerified={profileUser?.is_tick} //
+                fontSize={{ base: "xl", md: "2xl" }}
+              />
 
               <Text color={textColor} fontSize={{ base: "sm", md: "md" }}>
                 {profileUser?.bio || "Chưa có mô tả"}

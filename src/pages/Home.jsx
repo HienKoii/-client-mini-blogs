@@ -11,7 +11,7 @@ const Home = () => {
   return (
     <>
       <VStack spacing={6} align="stretch">
-        {user && <CreatePost />}
+        {user && <CreatePost user={user} />}
         <PostList posts={posts} loading={isLoading} />
       </VStack>
     </>

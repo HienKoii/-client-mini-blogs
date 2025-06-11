@@ -6,6 +6,7 @@ import PATH from "../utils/path";
 import Auth from "../components/auth/Auth";
 import NavigationHeader from "../components/navigation/NavigationHeader";
 import DarkModeBtn from "../components/darkMode/DarkModeBtn";
+import Logo from "../components/logo/Logo";
 
 const Header = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -37,11 +38,7 @@ const Header = () => {
           variant="ghost"
           aria-label="Open menu"
         />
-        <Box>
-          <Heading as={RouterLink} to={PATH.home} size="md" cursor="pointer">
-            Mini Blog
-          </Heading>
-        </Box>
+        <Logo />
 
         {/* Center section - Navigation */}
         <NavigationHeader />
